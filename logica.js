@@ -51,6 +51,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     ];
 
+    let lastAnimal = null;
+    let activeAnimalIndex = -1;
+    let lastActiveIndex = -1; 
+    const animals = []; 
+
     class Animal {
         static lastId = 0;
         constructor(x, y, imgSrc) {
@@ -61,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
             this.height = 50;
             this.speed = 5;
             this.hestoryposicion = [];
-            this.lastMove = null; // Guarda la última dirección de movimiento
+            // this.lastMove = null; // Guarda la última dirección de movimiento
             this.recordPosition(x, y);
             this.image = new Image();
             this.image.src = imgSrc;
@@ -107,6 +112,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 this.x = newX;
                 this.y = newY;
                 this.lastMove = direction;
+
+
+                console.log(`Animal ID ${this.id} se movió a X:${this.x}, Y:${this.y}`);
             }
         }
 
@@ -135,8 +143,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    const animals = [];
-    let activeAnimalIndex = -1;
+    // const animals = [];
+    // let activeAnimalIndex = -1;
 
     function addAnimal() {
         const animalWidth = 50;
@@ -144,7 +152,16 @@ document.addEventListener("DOMContentLoaded", () => {
         let newAnimal;
         let validPosition = false;
         let attempts = 0;
-        const maxAttempts = 4;
+        const maxAttempts = 2;
+
+        if (animals.length > 0) {
+            const lastAnimal = animals[animals.length - 1];
+            lastAnimalPosition = { id: lastAnimal.id, x: lastAnimal.x, y: lastAnimal.y };
+            console.log(`Última posición guardada - ID: ${lastAnimalPosition.id}, Posición: (${lastAnimalPosition.x}, ${lastAnimalPosition.y})`);
+        } else {
+            console.log("No hay animales en el corral. Se agregará el primero.");
+            lastAnimalPosition = null;
+        }
 
         while (!validPosition && attempts < maxAttempts) {
             attempts++;
@@ -163,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         this.y + this.height > otherY;
                 }
             };
-            
+            // aca se hace la verificacion o check de la collicion con un manejo de intentos por si las moscas la verdad no estaba siguiendo el video de youtu pero para nosotros no sirve de nada 
             validPosition = true;
             for (const animal of animals) {
                 if (tempAnimal.checkCollision(animal.x, animal.y)) {
@@ -172,11 +189,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     break;
                 }
             }
+
+            // se valida la posicion para la coliciion despues de eso se guarda el penultimo animal u objeto y despues se agrega o renderiza el nuevo
             
             if (validPosition) {
+                if (animals.length > 0) {
+                    // aca se guarda el penultimo
+                    lastAnimal = animals[animals.length - 1]; 
+                }
                 newAnimal = new Animal(x, y, animalImages.oveja);
                 animals.push(newAnimal);
-                activeAnimalIndex = animals.length - 1;
+                // aca activanos el ultimo agregado
+                activeAnimalIndex = animals.length - 1; 
                 console.log(`Oveja ID ${newAnimal.id} agregada en (${x},${y})`);
                 return newAnimal;
             }
@@ -186,6 +210,25 @@ document.addEventListener("DOMContentLoaded", () => {
         return null;
     }
 
+    // se supone que era para mover el anterior del ultimo pero se corrompio o se rompio el codigo para se ve bonito pero no funciona
+
+    // function moveLastAnimal(dx, dy, direction) {
+    //     if (lastAnimalPosition) {
+    //         const lastAnimal = animals.find(animal => animal.id === lastAnimalPosition.id);
+    
+    //         if (lastAnimal) {
+    //             lastAnimal.move(dx, dy, direction);
+    //             console.log(`Animal ID ${lastAnimal.id} movido a (${lastAnimal.x}, ${lastAnimal.y})`);
+    //         } else {
+    //             console.log("El último animal guardado ya no existe en la lista.");
+    //         }
+    //     } else {
+    //         console.log("No hay ningún animal guardado para mover.");
+    //     }
+    // }
+
+
+    // se define los codigos para vida infinita :)
     const konamiCode = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
     let konamiIndex = 0;
 
@@ -193,6 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (activeAnimalIndex < 0 || activeAnimalIndex >= animals.length) return;
         const activeAnimal = animals[activeAnimalIndex];
         
+        // aca esta el movimiento con las teclas y se agregan mas para el cod konami
         switch (event.key) {
             case "ArrowUp": activeAnimal.move(0, -activeAnimal.speed, "up"); break;
             case "ArrowDown": activeAnimal.move(0, activeAnimal.speed, "down"); break;
@@ -224,6 +268,38 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     document.getElementById("newoveja").addEventListener("click", () => {
-        addAnimal();
+        addAnimal();  
     });
+
+    // este boton temporal sera remplazdo con el mouse pero por el momento no tenego ni la minima idea de como implementarlo entonces complazerno con esto 
+    document.getElementById("oldoveja").addEventListener("click", () => {
+        // valido si hay mas de dos animales a los cuales poder alternar sino un error y chao
+        if (animals.length < 2) { 
+            alert("No hay suficientes animales para alternar.");
+            return;
+        }
+
+        // aqui validamos si esta activo el animal el cual queremos mover 
+        if (activeAnimalIndex < 0 || activeAnimalIndex >= animals.length) {
+            console.log("No hay un animal activo actualmente.");
+            return;
+        }
+    
+        // se guarda el id del ultimo antes de alternar o cambair 
+        lastActiveIndex = activeAnimalIndex;
+    
+        // se busca el siguiente a alternar y lo activamos
+        let newIndex = (activeAnimalIndex - 1 + animals.length) % animals.length;
+    
+        // y aca lo cambiamos oara poderlo mover 
+        activeAnimalIndex = newIndex;
+    
+        console.log(`Cambio completado. Ahora controlas el ID ${animals[activeAnimalIndex].id}`);
+    });
+    
+    document.addEventListener("click", (event) => {
+        console.log(`Clic en X: ${event.clientX}, Y: ${event.clientY}`);
+    });
+
+    
 });
