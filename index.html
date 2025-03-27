@@ -1,16 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Granjero por un Día - Juego por Niveles</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="style.css">
-    <title>Farm_logic</title>
+    
+
 </head>
 <body>
+    <h1>Granjero por un Día</h1>
     
+    <div id="game-container">
+        <div id="game-info">
+            <p id="timer">Tiempo: 0s</p>
+            <p id="counter">Animales en corral: 0/2</p>
+            <p id="progress">Progreso: 0/2</p>
+        </div>
+        
+        <div id="controls">
+            <button id="startButton">Comenzar Juego</button>
+            <button id="stopButton">Para juego</button>
+            <button id="resetButton">Para juego</button>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+    </div>
+    
+    <!-- <div id="instructions">
+        <h3>Instrucciones:</h3>
+        <ul>
+            <li><strong>Flechas del teclado:</strong> Mueven al animal seleccionado</li>
+            <li><strong>Añadir Animal:</strong> Agrega un nuevo animal al juego</li>
+            <li><strong>Objetivo:</strong> Lleva cada animal a su corral correspondiente</li>
+            <li><strong>Corrales:</strong> Zonas marcadas con bordes verdes</li>
+        </ul>
+        <p>¡Completa todos los niveles para ganar!</p>
+    </div> -->
+
+
 
 </body>
 
 <script src="logica.js"></script>
- 
 </html>
