@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", () => { // Nombramos un evento esc
     const ctx = canvas.getContext("2d") // Referimos el contexto del nivel en el que encontraremos el juego
     console.log(ctx);
 
+    let progressDisplay = document.getElementById("progress");
+
     class Animal {
         constructor (x,y, imgSrc, type){ //Crearemos un constructor que capturara todos los datos presentes de todo objeto para validar referencia como diversos datos requeridos o que necesitemos dentro del objeto renderizado
             this.x = x; // Posicion en el eje x
@@ -48,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => { // Nombramos un evento esc
 
     // Background del Canvas
     const background = new Image(); // Nombramos la constante que nos permitira dibujar o tener en cuenta el dibujo de la imagen
-    background.src = "images/Granja.jpg"; // Usaremos la ruta correcta para poder renderizar la imagen que necesitamos.
+    background.src = "images/pasto.jpg"; // Usaremos la ruta correcta para poder renderizar la imagen que necesitamos.
     
     // Nombramos las constantes o datos que usaremos para pode renderizar las imagenes de los animales
     const farmImages = {
@@ -58,8 +60,8 @@ document.addEventListener("DOMContentLoaded", () => { // Nombramos un evento esc
 
     // Renderizamos la imagen dentro del canvas usando esta constante
     const farmZones = {
-        oveja: {x:500 , y:50, width:300, height:400},
-        vaca: { x: 200, y: 50, width: 300, height: 400 }
+        oveja: {x:600 , y:50, width:150, height:300},
+        vaca: { x: 50, y: 300, width: 150, height: 300}
     }
 
     // Indicamos las imagenes de donde saldran 
@@ -157,32 +159,32 @@ document.addEventListener("DOMContentLoaded", () => { // Nombramos un evento esc
             animal.y + animal.height / 2 > farm.y &&
             animal.y + animal.height / 2 < farm.y + farm.height;
     
-        if (isInsideCorrectFarm) {
-            if (!animal.inFarm) { // Si es la primera vez que entra al corral correcto
-                animal.inFarm = true; 
-                animal.isLocked = true; // Bloquear movimiento del animal dentro del corral
-                correctAnimals++; 
-                updateCounter();
-    
-                // Centrar el animal dentro del corral
-                animal.x = farm.x + (farm.width / 2 - animal.width / 2);
-                animal.y = farm.y + (farm.height / 2 - animal.height / 2);
-            }
-    
-            // Si todos los animales están en el corral correcto, mostrar alerta de éxito
-            if (correctAnimals === animals.length) {
-                setTimeout(() => {
-                    Swal.fire({
-                        title: "¡Felicidades! 🎉",
-                        text: "Has completado el juego correctamente.",
-                        icon: "success",
-                        confirmButtonText: "Terminar juego"
-                    }).then(() => {
-                        detenerTemporizador();
-                        detenerJuego();
-                    });
-                }, 500);
-            }
+            if (isInsideCorrectFarm) {
+                if (!animal.inFarm) {
+                    animal.inFarm = true;
+                    animal.isLocked = true;
+                    correctAnimals++;
+                    updateCounter();
+                    updateProgress(); // Llamar a la nueva función
+        
+                    // Centrar el animal
+                    animal.x = farm.x + (farm.width / 2 - animal.width / 2);
+                    animal.y = farm.y + (farm.height / 2 - animal.height / 2);
+                }
+        
+                if (correctAnimals === animals.length) {
+                    setTimeout(() => {
+                        Swal.fire({
+                            title: "¡Felicidades! 🎉",
+                            text: "Has completado el nivel 1!",
+                            icon: "success",
+                            confirmButtonText: "Siguiente nivel"
+                        }).then(() => {
+                            detenerTemporizador();
+                            window.location.href = "index2.html"; // Redirección
+                        });
+                    }, 500);
+                }
         } else {
             // Si el animal es incorrecto, mostrar alerta de error y regresarlo a su posición inicial
             Swal.fire({
@@ -198,6 +200,10 @@ document.addEventListener("DOMContentLoaded", () => { // Nombramos un evento esc
 
         }
     }    
+
+    function updateProgress() {
+        progressDisplay.textContent = `Progreso: ${correctAnimals}/${animals.length}`;
+    }
 
     // Botones y funcionamiento 
 
@@ -270,12 +276,13 @@ document.addEventListener("DOMContentLoaded", () => { // Nombramos un evento esc
 
     document.getElementById("startButton").addEventListener("click", () => {
         gameStarted = true;
-
         tiempoRestante = 40;
-        iniciarTemporizador()
+        correctAnimals = 0;
+        updateProgress(); // Mostrar 0/2 al inicio
+        iniciarTemporizador();
         updateCounter();
         requestAnimationFrame(gameLoop);
-    })
+    });
 
     document.getElementById("stopButton").addEventListener("click", () => {
         gameStarted = false;
