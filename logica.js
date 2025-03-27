@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
             y: 0,  
             width: 40,  
             height: 150,
-            // color: "brown" 
+            color: "brown" 
         },
         {
             x: 150,  
@@ -297,8 +297,21 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(`Cambio completado. Ahora controlas el ID ${animals[activeAnimalIndex].id}`);
     });
     
-    document.addEventListener("click", (event) => {
-        console.log(`Clic en X: ${event.clientX}, Y: ${event.clientY}`);
+    canvas.addEventListener("click", (event) => {
+        // laqui obtenemos la ubicacion del mouse dentro del canva que es la granja
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+    
+        // despues de ello vamos a recorrer la ubicacion de los animales y ver cual coincide para despues activarlo y poderlo mover
+        for (let animal of animals) {
+            if (x >= animal.x && x <= animal.x + animal.width &&
+                y >= animal.y && y <= animal.y + animal.height) {
+                console.log(`¡Clic en el animal ID: ${animal.id}!`);
+                activeAnimalIndex = animals.indexOf(animal);
+                break; 
+            }
+        }
     });
 
     
