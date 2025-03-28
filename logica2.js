@@ -1,4 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+    const button = document.getElementById("cambiocolor");
+        let isWhite = true;
+
+        button.addEventListener("click", () => {
+            document.body.style.backgroundColor = isWhite ? "gray" : "white";
+            document.querySelector("h1").style.color = isWhite ? "white" : "green";
+            document.getElementById("game-info").style.backgroundColor = isWhite ? "gray" : "white";
+            document.body.style.color = isWhite ? "white" : "black"; // Cambia el color del texto
+            isWhite = !isWhite;
+        });
+    
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
