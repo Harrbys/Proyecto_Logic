@@ -1,4 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => { // Nombramos un evento escucha para posteriormente hacer que el DOOM se cargue antes que el canva se desarrolle
+
+    const button = document.getElementById("cambiocolor");
+    let isWhite = true;
+
+    button.addEventListener("click", () => {
+        document.body.style.backgroundColor = isWhite ? "gray" : "white";
+        document.querySelector("h1").style.color = isWhite ? "white" : "green";
+        document.getElementById("game-info").style.backgroundColor = isWhite ? "gray" : "white";
+        document.body.style.color = isWhite ? "white" : "black"; // Cambia el color del texto
+        isWhite = !isWhite;
+    });
+
+    
     const canvas = document.getElementById("gameCanvas"); // Capturamos el canvas mediante un elemento id para poder renderizarlo en el espacio que necesitamos
     const ctx = canvas.getContext("2d") // Referimos el contexto del nivel en el que encontraremos el juego
     console.log(ctx);
