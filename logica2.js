@@ -81,14 +81,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         draw() {
             ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-            if (debugCollision) {
-                ctx.strokeStyle = "red";
-                ctx.lineWidth = 2;
-                ctx.strokeRect(this.x, this.y, this.width, this.height);
-                ctx.fillStyle = "red";
-                ctx.font = "12px Arial";
-                ctx.fillText(`ID:${this.id}`, this.x + 5, this.y + 15);
-            }
+            // este codicional loq ue hace es mostrar el hitbox de la oveja con la que hace colision
+            // if (debugCollision) {
+            //     // ctx.strokeStyle = "red";
+            //     // ctx.lineWidth = 2;
+            //     // ctx.strokeRect(this.x, this.y, this.width, this.height);
+            //     // ctx.fillStyle = "red";
+            //     // ctx.font = "12px Arial";
+            //     // ctx.fillText(`ID:${this.id}`, this.x + 5, this.y + 15);
+            // }
         }
 
         move(dx, dy, direction) {
@@ -112,12 +113,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 this.x = newX;
                 this.y = newY;
                 this.lastMove = direction;
-
-
+                // se hace seguimiento de la posicion del animal 
                 console.log(`Animal ID ${this.id} se movió a X:${this.x}, Y:${this.y}`);
             }
         }
 
+        // basado en el seguimiento se hace el metodo de colicion con otro animal
         checkCollision(newX, newY) {
             for (let animal of animals) {
                 if (animal !== this) {
@@ -129,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
             }
-
+            // se hace la colision con los objetos staticos que son el granero y el corral
             for (let obj of staticObjects) {
                 if (newX < obj.x + obj.width &&
                     newX + this.width > obj.x &&
@@ -143,6 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // funcion para dibujar los objetos staticos para comodar la hitbox del mapa
     function drawStaticObjects() {
         staticObjects.forEach(obj => {
             if (obj.color) {
@@ -168,6 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let attempts = 0;
         const maxAttempts = 2;
 
+        // se hace seguimiento de la utima posicion guardada del animal antes de generar otro nuevo
         if (animals.length > 0) {
             const lastAnimal = animals[animals.length - 1];
             lastAnimalPosition = { id: lastAnimal.id, x: lastAnimal.x, y: lastAnimal.y };
@@ -177,6 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
             lastAnimalPosition = null;
         }
 
+        // aca aseguro la posicion estandar de la aparicion del nuevo animal
         while (!validPosition && attempts < maxAttempts) {
             attempts++;
             const x = 205;
@@ -279,19 +283,24 @@ function randomMovement(animal) {
     if (!konamiActive) return;
     
     const directions = [
-        { dx: 0, dy: -animal.speed }, // Arriba
-        { dx: 0, dy: animal.speed },  // Abajo
-        { dx: -animal.speed, dy: 0 }, // Izquierda
-        { dx: animal.speed, dy: 0 },  // Derecha
-        { dx: animal.speed, dy: animal.speed }, // Diagonal abajo-derecha
-        { dx: -animal.speed, dy: -animal.speed } // Diagonal arriba-izquierda
+        // Arriba
+        { dx: 0, dy: -animal.speed }, 
+        // Abajo
+        { dx: 0, dy: animal.speed },  
+        // Izquierda
+        { dx: -animal.speed, dy: 0 }, 
+        // Derecha
+        { dx: animal.speed, dy: 0 },  
+        // Diagonal abajo-derecha
+        { dx: animal.speed, dy: animal.speed }, 
+        // Diagonal arriba-izquierda
+        { dx: -animal.speed, dy: -animal.speed } 
     ];
     
     const randomDir = directions[Math.floor(Math.random() * directions.length)];
     animal.move(randomDir.dx, randomDir.dy, "random");
 }
 
-// Modifica tu gameLoop para incluir el movimiento aleatorio
 function gameLoop() {
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
     // drawStaticObjects();
@@ -299,7 +308,7 @@ function gameLoop() {
     // Mover animales aleatoriamente si Konami está activo
     if (konamiActive) {
         animals.forEach(animal => {
-            if (!animal.isLocked) { // Solo mover animales no bloqueados
+            if (!animal.isLocked) {
                 randomMovement(animal);
             }
         });
