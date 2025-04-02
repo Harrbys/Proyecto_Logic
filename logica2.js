@@ -115,11 +115,14 @@ document.addEventListener("DOMContentLoaded", () => {
             let newX = this.x + dx;
             let newY = this.y + dy;
 
+
+            // evitar que el objeto que se este manipulando salga del canvas o fuera de los limites
             if (newX < 0 || newX + this.width > canvas.width ||
                 newY < 0 || newY + this.height > canvas.height) {
                 return;
             }
 
+            // evitar que se mueva si se encuentra una colision en la proxima posision
             if (!this.checkCollision(newX, newY)) {
                 this.recordPosition(newX, newY);
                 this.x = newX;
