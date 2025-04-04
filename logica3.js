@@ -14,26 +14,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const ctx = canvas.getContext("2d");
 
     const background = new Image();
-    background.src = "images/fondo3.jpg";
+    background.src = "images/fondo_nubes.jpg";
+
+    const background1 = new Image();
+    background1.src = "images/fondo_tierra.png";
 
     // Constantes de física
     const GRAVITY = 0.5;
     const JUMP_FORCE = -12;
     const MOVE_SPEED = 5;
     const FRAME_DELAY = 8;
-    const ATTACK_COOLDOWN = 500; // 500ms de cooldown entre ataques
-    const ATTACK_DURATION = 300; // 300ms de duración del ataque
+    const ATTACK_COOLDOWN = 500; // 500ms loq ue se demora en cada ataque 
+    const ATTACK_DURATION = 300; // 300ms loq ue dura el ataque
 
     const debugCollision = true; 
 
-    // Objetos estáticos
+    // Obstaculos
     const staticObjects = [
         {
             x: 0,  
             y: 470,  
-            width: 1000,  
+            width: 10000,  
             height: 160,
-            color: "green" 
+            // color: "green" 
         },
         {
             x: 490,  
@@ -77,9 +80,9 @@ document.addEventListener("DOMContentLoaded", () => {
             this.color = "red";
             this.isAlive = true;
             this.damageTexts = [];
-            this.facing = 'left'; // Los enemigos miran hacia la izquierda por defecto
+            this.facing = 'left';
             this.currentImage = new Image();
-            this.currentImage.src = "images/player-camina3l.png"; // Imagen inicial (idle izquierda)
+            this.currentImage.src = "images/player-camina3l.png";
             this.isMoving = false;
             this.speed = 2;
         }
@@ -113,21 +116,25 @@ document.addEventListener("DOMContentLoaded", () => {
             
         }
 
+        
+
+        // metodo para actualizar la imagen dependiendo la direccion o el facing mucho ingles
         updateImage() {
             if (this.facing === 'right') {
-                this.currentImage.src = "images/player-camina3.png"; // Imagen de caminar derecha
+                this.currentImage.src = "images/player-camina3.png"; // 
             } else {
-                this.currentImage.src = "images/player-camina3l.png"; // Imagen de caminar izquierda
+                this.currentImage.src = "images/player-camina3l.png"; 
             }
         }
 
+        // metodo para dibujar en el canvas
         draw() {
             if (!this.isAlive) return;
 
             // Dibujar enemigo
             if (!this.isAlive) return;
 
-            // Dibujar enemigo (usando la misma imagen que el jugador)
+            // Dibujar enemigo 
             if (this.currentImage.complete) {
                 ctx.drawImage(this.currentImage, this.x, this.y, this.width, this.height);
             } else {
@@ -160,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // Debug: mostrar hitbox
+            // mostrar la hitbox o el debug
             if (debugCollision) {
                 ctx.strokeStyle = 'red';
                 ctx.lineWidth = 1;
@@ -168,6 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
+        // metodo del daño dibujado en el canvas
         takeDamage(amount) {
             if (!this.isAlive) return;
 
@@ -194,17 +202,19 @@ document.addEventListener("DOMContentLoaded", () => {
             this.isActive = false;
             this.startTime = 0;
             this.image = new Image();
-            this.image.src = "images/attack1.png"; // Asegúrate de tener esta imagen
+            this.image.src = "images/attack1.png";
             this.width = 60;
             this.height = 40;
             this.damage = 10;
         }
 
+        // metodo para saber cuando esta atacando el player
         activate() {
             this.isActive = true;
             this.startTime = Date.now();
         }
 
+        // metodo para activar o desactivar el metodo que miestra el ataque o realzia 
         update() {
             if (!this.isActive) return;
 
@@ -214,6 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
+        // metodo para dibujar en el canvas el ataque 
         draw() {
             if (!this.isActive || !this.image.complete) return;
 
@@ -229,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 this.height
             );
 
-            // Debug: mostrar hitbox
+            // Mostrar el hitbox del ataque o la espada
             if (debugCollision) {
                 ctx.strokeStyle = 'blue';
                 ctx.lineWidth = 1;
@@ -242,6 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
+        // devolver la imagen despues de realizar el ataque
         getHitbox() {
             if (!this.isActive) return null;
 
@@ -271,7 +283,7 @@ document.addEventListener("DOMContentLoaded", () => {
             this.lastAttackTime = 0;
             this.attack = new Attack(this);
             
-            // Sistema de animación
+            // Sistema de animación del player
             this.animations = {
                 right: {
                     frames: [],
@@ -314,7 +326,8 @@ document.addEventListener("DOMContentLoaded", () => {
             this.animations.jump.left.src = "images/player-camina3l.png";
             this.animations.idle.right.src = "images/player-camina3.png";
             this.animations.idle.left.src = "images/player-camina3l.png";
-            // toca crear animacion de ataque
+
+            // toca crear animacion de ataque ya creada
             this.animations.attack.right.src = "images/player-camina3.png";
             this.animations.attack.left.src = "images/player-camina3l.png";
             
@@ -323,6 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
             this.isAttacking = false;
         }
 
+        // modificar la imagen dependiendo la accion
         updateAnimation() {
             if (this.isAttacking) {
                 // Animación de ataque
@@ -352,21 +366,19 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
+        // metodo para dibujar en el canvas segun el update
         draw() {
             this.updateAnimation();
             
             if (this.currentImage.complete) {
                 ctx.drawImage(this.currentImage, this.x, this.y, this.width, this.height);
             } else {
-                // Dibujo temporal mientras cargan las imágenes
                 ctx.fillStyle = "blue";
                 ctx.fillRect(this.x, this.y, this.width, this.height);
             }
             
-            // Dibujar ataque si está activo
             this.attack.draw();
             
-            // Debug: mostrar hitbox
             if (debugCollision) {
                 ctx.strokeStyle = 'red';
                 ctx.lineWidth = 1;
@@ -385,6 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             return false;
         }
+
 
         checkGrounded() {
             const checkY = this.y + this.height + 1;
@@ -429,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
             let newX = this.x + this.velocityX;
             let newY = this.y + this.velocityY;
             
-            // Limitar movimiento horizontal
+            // Limitar movimiento del salto
             newX = Math.max(0, Math.min(newX, canvas.width - this.width));
             
             // Verificar colisiones
@@ -453,6 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
         
+
         jump() {
             if (this.grounded) {
                 this.velocityY = JUMP_FORCE;
@@ -471,19 +485,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // dibujar los obstaculos y moverlos segun el fondo de la tierra
     function drawStaticObjects() {
         staticObjects.forEach(obj => {
+            const drawX = obj.x + background1X;
             if (obj.color) {
                 ctx.fillStyle = obj.color;
-                ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+                ctx.fillRect(drawX, obj.y, obj.width, obj.height);
                 
                 ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
                 ctx.lineWidth = 1;
-                ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+                ctx.strokeRect(drawX, obj.y, obj.width, obj.height);
             }
         });
     }
 
+    // ubicacion predetermindad del player
     const player = new Player(20, 450);
     
     // Crear algunos enemigos
@@ -513,17 +530,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         player.jump(); 
                         break;
                     case 'ArrowDown': 
-                        // Opcional: agacharse
                         break;
                 }
-            } else { // keyup
+            } else {
                 if (['ArrowRight', 'ArrowLeft'].includes(e.key)) {
                     player.velocityX = 0;
                 }
             }
         }
         
-        // Tecla de ataque (barra espaciadora)
         if (e.key === ' ' && e.type === 'keydown') {
             player.performAttack();
         }
@@ -558,29 +573,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let enemy = new Enemy(300, 100, 50, 50, 100);
-    let backgroundX = 0;  // La posición X del fondo
-    let backgroundWidth = 3000;  // Ancho total del fondo
-    let backgroundSpeed = 2;
+    let background1X = 0;  // La posición X del fondo
+    let background1Width = 30000;  // Ancho total del fondo
+    let background1Speed = 2;
 
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+        // ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
         drawStaticObjects();
+        ctx.drawImage(background1, 0, 0, canvas.width, canvas.height);
 
         player.update();
         player.update(enemy);
 
         if(player.velocityX > 0) {
-            backgroundX -= backgroundSpeed;
+            background1X -= background1Speed;
+            staticObjects.forEach(obj => obj.x -= background1Speed);
         }
 
         if (player.velocityX < 0) {
-            backgroundX += backgroundSpeed;
+            background1X += background1Speed;
+            staticObjects.forEach(obj => obj.x -= background1Speed);
         }
 
-        backgroundX = Math.max(0,backgroundX);
+        // backgroundX = Math.max(0,backgroundX);
 
-        backgroundX = Math.min(backgroundX, backgroundWidth - canvas.width);
+        // backgroundX = Math.min(backgroundX, backgroundWidth - canvas.width);
 
         for(let enemy of enemies) {
             enemy.moveToPlayer(player);
@@ -604,7 +622,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function draw(){
-        ctx.drawImage(background, backgroundX, 0, canvas.width, canvas.height);
+        ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(background1, background1X, 0, 2000, canvas.height);
+        drawStaticObjects();
     
         // Dibujar jugador y enemigos
         player.draw();
