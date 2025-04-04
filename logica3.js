@@ -81,6 +81,44 @@ document.addEventListener("DOMContentLoaded", () => {
             this.currentImage = new Image();
             this.currentImage.src = "images/player-camina3l.png"; // Imagen inicial (idle izquierda)
             this.isMoving = false;
+            this.speed = 2;
+        }
+
+        update(player) {
+            if(this.isAlive) {
+                this.moveToPlayer(player);
+            }
+
+        }
+
+        moveToPlayer(playerX, playerY){
+            if (!this.isAlive) return;
+
+            // Moverse hacia el jugador
+            if (this.x < playerX) {
+                this.x += this.speed;
+                this.facing = 'right';
+            } else if (this.x > playerX) {
+                this.x -= this.speed;
+                this.facing = 'left';
+            }
+
+            if (this.y < playerY) {
+                this.y += this.speed;
+            }else if (this.y > playerY) {
+                this.y -= this.speed;
+            }
+
+            this.updateImage();
+            
+        }
+
+        updateImage() {
+            if (this.facing === 'right') {
+                this.currentImage.src = "images/player-camina3.png"; // Imagen de caminar derecha
+            } else {
+                this.currentImage.src = "images/player-camina3l.png"; // Imagen de caminar izquierda
+            }
         }
 
         draw() {
@@ -258,6 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     left: new Image()
                 }
             };
+
             
             // Cargar frames de animación (3 frames por dirección)
             for (let i = 1; i <= 3; i++) {
@@ -364,6 +403,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         update() {
+
+            enemy.moveToPlayer(player);
             // Actualizar ataque
             this.attack.update();
             
@@ -516,12 +557,35 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    let enemy = new Enemy(300, 100, 50, 50, 100);
+    let backgroundX = 0;  // La posición X del fondo
+    let backgroundWidth = 3000;  // Ancho total del fondo
+    let backgroundSpeed = 2;
+
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
         drawStaticObjects();
-        
+
         player.update();
+        player.update(enemy);
+
+        if(player.velocityX > 0) {
+            backgroundX -= backgroundSpeed;
+        }
+
+        if (player.velocityX < 0) {
+            backgroundX += backgroundSpeed;
+        }
+
+        backgroundX = Math.max(0,backgroundX);
+
+        backgroundX = Math.min(backgroundX, backgroundWidth - canvas.width);
+
+        for(let enemy of enemies) {
+            enemy.moveToPlayer(player);
+            enemy.update(player.x, player.y);
+        }
         player.draw();
         
         // Actualizar y dibujar enemigos
@@ -530,11 +594,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 enemy.draw();
             }
         });
+
+        draw();
         
         // Verificar colisiones de ataque
         checkAttackCollisions();
         
         requestAnimationFrame(gameLoop);
+    }
+
+    function draw(){
+        ctx.drawImage(background, backgroundX, 0, canvas.width, canvas.height);
+    
+        // Dibujar jugador y enemigos
+        player.draw();
+        for (let enemy of enemies) {
+            enemy.draw();
+        }
     }
     
     // Precargar imágenes antes de iniciar el juego
