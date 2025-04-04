@@ -27,7 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const ATTACK_COOLDOWN = 500; // 500ms loq ue se demora en cada ataque 
     const ATTACK_DURATION = 300; // 300ms loq ue dura el ataque
 
-    const debugCollision = true; 
+    const debugCollision = true;
+    
+    const staticImages = {};
 
     // Obstaculos
     const staticObjects = [
@@ -36,37 +38,44 @@ document.addEventListener("DOMContentLoaded", () => {
             y: 470,  
             width: 10000,  
             height: 160,
-            // color: "green" 
         },
         {
             x: 490,  
             y: 400,  
             width: 80,  
             height: 70,
-            color: "black" 
+            imageSrc: "images/rock.png"
         },
         {
             x: 163,  
             y: 400,  
             width: 127,  
             height: 10,
-            color: "yellow"
+            imageSrc: "images/rock.png"
         },
         {
             x: 430,
             y: 0,
             width: 5,
             height: 200,
-            color: "gray"
+            imageSrc: "images/rock.png"
         },
         {
             x: 705,
             y: 0,
             width: 5,
             height: 200,
-            color: "gray"
+            imageSrc: "images/rock.png"
         }
     ];
+
+    staticObjects.forEach(obj => {
+        if (obj.imageSrc) {
+            const img = new Image();
+            img.src = obj.imageSrc;
+            staticImages[obj.imageSrc] = img;
+        }
+    });
 
     // Clase para enemigos
     class Enemy {
@@ -489,13 +498,11 @@ document.addEventListener("DOMContentLoaded", () => {
     function drawStaticObjects() {
         staticObjects.forEach(obj => {
             const drawX = obj.x + background1X;
-            if (obj.color) {
-                ctx.fillStyle = obj.color;
+            if (obj.imageSrc && staticImages[obj.imageSrc].complete) {
+                ctx.drawImage(staticImages[obj.imageSrc], drawX, obj.y, obj.width, obj.height);
+            } else {
+                ctx.fillStyle = "transparent"; // Color de respaldo
                 ctx.fillRect(drawX, obj.y, obj.width, obj.height);
-                
-                ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
-                ctx.lineWidth = 1;
-                ctx.strokeRect(drawX, obj.y, obj.width, obj.height);
             }
         });
     }
@@ -573,7 +580,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let enemy = new Enemy(300, 100, 50, 50, 100);
-    let background1X = 0;  // La posición X del fondo
+    let background1X = -100;  // La posición X del fondo
     let background1Width = 30000;  // Ancho total del fondo
     let background1Speed = 2;
 
@@ -593,7 +600,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (player.velocityX < 0) {
             background1X += background1Speed;
-            staticObjects.forEach(obj => obj.x -= background1Speed);
+            staticObjects.forEach(obj => obj.x += background1Speed);
         }
 
         // backgroundX = Math.max(0,backgroundX);
