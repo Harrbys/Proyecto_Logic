@@ -20,7 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const GRAVITY = 0.5;
     const JUMP_FORCE = -12;
     const MOVE_SPEED = 5;
-    const FRAME_DELAY = 8; // Velocidad de animación (menos = más rápido)
+    const FRAME_DELAY = 8;
+    const ATTACK_COOLDOWN = 500; // 500ms de cooldown entre ataques
+    const ATTACK_DURATION = 300; // 300ms de duración del ataque
 
     const debugCollision = true; 
 
@@ -63,6 +65,197 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     ];
 
+    // Clase para enemigos
+    class Enemy {
+        constructor(x, y, width, height, health) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.health = health;
+            this.maxHealth = health;
+            this.color = "red";
+            this.isAlive = true;
+            this.damageTexts = [];
+            this.facing = 'left'; // Los enemigos miran hacia la izquierda por defecto
+            this.currentImage = new Image();
+            this.currentImage.src = "images/player-camina3l.png"; // Imagen inicial (idle izquierda)
+            this.isMoving = false;
+            this.speed = 2;
+        }
+
+        update(player) {
+            if(this.isAlive) {
+                this.moveToPlayer(player);
+            }
+
+        }
+
+        moveToPlayer(playerX, playerY){
+            if (!this.isAlive) return;
+
+            // Moverse hacia el jugador
+            if (this.x < playerX) {
+                this.x += this.speed;
+                this.facing = 'right';
+            } else if (this.x > playerX) {
+                this.x -= this.speed;
+                this.facing = 'left';
+            }
+
+            if (this.y < playerY) {
+                this.y += this.speed;
+            }else if (this.y > playerY) {
+                this.y -= this.speed;
+            }
+
+            this.updateImage();
+            
+        }
+
+        updateImage() {
+            if (this.facing === 'right') {
+                this.currentImage.src = "images/player-camina3.png"; // Imagen de caminar derecha
+            } else {
+                this.currentImage.src = "images/player-camina3l.png"; // Imagen de caminar izquierda
+            }
+        }
+
+        draw() {
+            if (!this.isAlive) return;
+
+            // Dibujar enemigo
+            if (!this.isAlive) return;
+
+            // Dibujar enemigo (usando la misma imagen que el jugador)
+            if (this.currentImage.complete) {
+                ctx.drawImage(this.currentImage, this.x, this.y, this.width, this.height);
+            } else {
+                // Dibujo temporal mientras carga la imagen
+                ctx.fillStyle = "red";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+            // Dibujar barra de salud
+            const healthBarWidth = this.width;
+            const healthBarHeight = 5;
+            const healthPercentage = this.health / this.maxHealth;
+
+            ctx.fillStyle = "red";
+            ctx.fillRect(this.x, this.y - 10, healthBarWidth, healthBarHeight);
+            ctx.fillStyle = "green";
+            ctx.fillRect(this.x, this.y - 10, healthBarWidth * healthPercentage, healthBarHeight);
+
+            // Dibujar textos de daño
+            for (let i = this.damageTexts.length - 1; i >= 0; i--) {
+                const text = this.damageTexts[i];
+                ctx.fillStyle = `rgba(255, 0, 0, ${text.alpha})`;
+                ctx.font = "16px Arial";
+                ctx.fillText(`-${text.amount}`, text.x, text.y);
+                
+                text.y -= 1;
+                text.alpha -= 0.02;
+                
+                if (text.alpha <= 0) {
+                    this.damageTexts.splice(i, 1);
+                }
+            }
+
+            // Debug: mostrar hitbox
+            if (debugCollision) {
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(this.x, this.y, this.width, this.height);
+            }
+        }
+
+        takeDamage(amount) {
+            if (!this.isAlive) return;
+
+            this.health -= amount;
+            
+            // Añadir texto de daño
+            this.damageTexts.push({
+                amount: amount,
+                x: this.x + this.width / 2,
+                y: this.y - 20,
+                alpha: 1
+            });
+
+            if (this.health <= 0) {
+                this.isAlive = false;
+            }
+        }
+    }
+
+    // Clase para el ataque del jugador
+    class Attack {
+        constructor(player) {
+            this.player = player;
+            this.isActive = false;
+            this.startTime = 0;
+            this.image = new Image();
+            this.image.src = "images/attack1.png"; // Asegúrate de tener esta imagen
+            this.width = 60;
+            this.height = 40;
+            this.damage = 10;
+        }
+
+        activate() {
+            this.isActive = true;
+            this.startTime = Date.now();
+        }
+
+        update() {
+            if (!this.isActive) return;
+
+            // Desactivar el ataque después de la duración
+            if (Date.now() - this.startTime > ATTACK_DURATION) {
+                this.isActive = false;
+            }
+        }
+
+        draw() {
+            if (!this.isActive || !this.image.complete) return;
+
+            const attackX = this.player.facing === 'right' 
+                ? this.player.x + this.player.width 
+                : this.player.x - this.width;
+
+            ctx.drawImage(
+                this.image, 
+                attackX, 
+                this.player.y + this.player.height / 4, 
+                this.width, 
+                this.height
+            );
+
+            // Debug: mostrar hitbox
+            if (debugCollision) {
+                ctx.strokeStyle = 'blue';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(
+                    attackX, 
+                    this.player.y + this.player.height / 4, 
+                    this.width, 
+                    this.height
+                );
+            }
+        }
+
+        getHitbox() {
+            if (!this.isActive) return null;
+
+            return {
+                x: this.player.facing === 'right' 
+                    ? this.player.x + this.player.width 
+                    : this.player.x - this.width,
+                y: this.player.y + this.player.height / 4,
+                width: this.width,
+                height: this.height
+            };
+        }
+    }
+
     class Player {
         constructor(x, y) {
             this.x = x;
@@ -75,6 +268,8 @@ document.addEventListener("DOMContentLoaded", () => {
             this.grounded = false;
             this.facing = 'right';
             this.isMoving = false;
+            this.lastAttackTime = 0;
+            this.attack = new Attack(this);
             
             // Sistema de animación
             this.animations = {
@@ -95,8 +290,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 idle: {
                     right: new Image(),
                     left: new Image()
+                },
+                attack: {
+                    right: new Image(),
+                    left: new Image()
                 }
             };
+
             
             // Cargar frames de animación (3 frames por dirección)
             for (let i = 1; i <= 3; i++) {
@@ -109,17 +309,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 this.animations.left.frames.push(frameLeft);
             }
             
-            // Cargar imágenes de salto e idle
-            this.animations.jump.right.src = "images/Oveja.png";
-            this.animations.jump.left.src = "images/Vaca.png";
+            // Cargar imágenes de salto, idle y ataque
+            this.animations.jump.right.src = "images/player-camina3.png";
+            this.animations.jump.left.src = "images/player-camina3l.png";
             this.animations.idle.right.src = "images/player-camina3.png";
             this.animations.idle.left.src = "images/player-camina3l.png";
+            // toca crear animacion de ataque
+            this.animations.attack.right.src = "images/player-camina3.png";
+            this.animations.attack.left.src = "images/player-camina3l.png";
             
             // Imagen actual por defecto
             this.currentImage = this.animations.idle.right;
+            this.isAttacking = false;
         }
 
         updateAnimation() {
+            if (this.isAttacking) {
+                // Animación de ataque
+                this.currentImage = this.animations.attack[this.facing];
+                return;
+            }
+
             if (this.isJumping) {
                 // Animación de salto
                 this.currentImage = this.animations.jump[this.facing];
@@ -152,6 +362,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 ctx.fillStyle = "blue";
                 ctx.fillRect(this.x, this.y, this.width, this.height);
             }
+            
+            // Dibujar ataque si está activo
+            this.attack.draw();
             
             // Debug: mostrar hitbox
             if (debugCollision) {
@@ -190,6 +403,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         update() {
+
+            enemy.moveToPlayer(player);
+            // Actualizar ataque
+            this.attack.update();
+            
             // Aplicar gravedad
             this.velocityY += GRAVITY;
             
@@ -198,7 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (this.grounded && !this.isJumping && this.velocityY > 0) {
                 this.velocityY = 0;
-                // Ajustar posición para que no se hunda en el suelo
+                // aca esta el pouto 
                 for (let obj of staticObjects) {
                     if (this.y + this.height > obj.y && this.y + this.height < obj.y + obj.height) {
                         this.y = obj.y - this.height;
@@ -228,6 +446,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 this.velocityY = 0;
             }
+            
+            // Resetear estado de ataque si ha terminado
+            if (this.isAttacking && !this.attack.isActive) {
+                this.isAttacking = false;
+            }
         }
         
         jump() {
@@ -235,6 +458,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 this.velocityY = JUMP_FORCE;
                 this.isJumping = true;
                 this.grounded = false;
+            }
+        }
+
+        performAttack() {
+            const now = Date.now();
+            if (now - this.lastAttackTime > ATTACK_COOLDOWN) {
+                this.isAttacking = true;
+                this.attack.activate();
+                this.lastAttackTime = now;
             }
         }
     }
@@ -253,6 +485,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const player = new Player(20, 450);
+    
+    // Crear algunos enemigos
+    const enemies = [
+        new Enemy(300, 420, 50, 50, 30),
+        new Enemy(600, 420, 50, 50, 30),
+        new Enemy(800, 420, 50, 50, 30)
+    ];
 
     // Control del jugador
     function handleKeyEvents(e) {
@@ -283,6 +522,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         }
+        
+        // Tecla de ataque (barra espaciadora)
+        if (e.key === ' ' && e.type === 'keydown') {
+            player.performAttack();
+        }
     }
 
     window.addEventListener('keydown', handleKeyEvents);
@@ -293,15 +537,80 @@ document.addEventListener("DOMContentLoaded", () => {
     canvas.focus();
     canvas.addEventListener('click', () => canvas.focus());
 
+    // Verificar colisiones entre ataque y enemigos
+    function checkAttackCollisions() {
+        if (!player.attack.isActive) return;
+        
+        const attackHitbox = player.attack.getHitbox();
+        if (!attackHitbox) return;
+        
+        for (let enemy of enemies) {
+            if (!enemy.isAlive) continue;
+            
+            if (attackHitbox.x < enemy.x + enemy.width &&
+                attackHitbox.x + attackHitbox.width > enemy.x &&
+                attackHitbox.y < enemy.y + enemy.height &&
+                attackHitbox.y + attackHitbox.height > enemy.y) {
+                
+                enemy.takeDamage(player.attack.damage);
+            }
+        }
+    }
+
+    let enemy = new Enemy(300, 100, 50, 50, 100);
+    let backgroundX = 0;  // La posición X del fondo
+    let backgroundWidth = 3000;  // Ancho total del fondo
+    let backgroundSpeed = 2;
+
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
         drawStaticObjects();
-        
+
         player.update();
+        player.update(enemy);
+
+        if(player.velocityX > 0) {
+            backgroundX -= backgroundSpeed;
+        }
+
+        if (player.velocityX < 0) {
+            backgroundX += backgroundSpeed;
+        }
+
+        backgroundX = Math.max(0,backgroundX);
+
+        backgroundX = Math.min(backgroundX, backgroundWidth - canvas.width);
+
+        for(let enemy of enemies) {
+            enemy.moveToPlayer(player);
+            enemy.update(player.x, player.y);
+        }
         player.draw();
         
+        // Actualizar y dibujar enemigos
+        enemies.forEach(enemy => {
+            if (enemy.isAlive) {
+                enemy.draw();
+            }
+        });
+
+        draw();
+        
+        // Verificar colisiones de ataque
+        checkAttackCollisions();
+        
         requestAnimationFrame(gameLoop);
+    }
+
+    function draw(){
+        ctx.drawImage(background, backgroundX, 0, canvas.width, canvas.height);
+    
+        // Dibujar jugador y enemigos
+        player.draw();
+        for (let enemy of enemies) {
+            enemy.draw();
+        }
     }
     
     // Precargar imágenes antes de iniciar el juego
@@ -313,7 +622,10 @@ document.addEventListener("DOMContentLoaded", () => {
             player.animations.jump.right,
             player.animations.jump.left,
             player.animations.idle.right,
-            player.animations.idle.left
+            player.animations.idle.left,
+            player.animations.attack.right,
+            player.animations.attack.left,
+            player.attack.image
         ];
         
         let loaded = 0;
